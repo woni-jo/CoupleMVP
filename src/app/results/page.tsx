@@ -22,7 +22,7 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
   return (
     <MobileShell>
       {recommendation ? (
-        <ResultView recommendation={recommendation} />
+        <ResultView recommendation={recommendation} request={request} />
       ) : (
         <RecommendationError />
       )}
@@ -46,10 +46,10 @@ function RecommendationError() {
         </p>
       </div>
       <Link
-        href="/"
+        href="/?start=1"
         className="flex h-12 items-center justify-center rounded-2xl bg-gradient-to-r from-[#ff8fa3] to-[#ff758f] px-4 text-base font-black text-white"
       >
-        홈으로 돌아가기
+        선택 화면으로 돌아가기
       </Link>
     </div>
   );
@@ -62,12 +62,14 @@ function parseRecommendRequest(
   const intent = parseIntent(getParam(params.intent));
   const lat = parseNumber(getParam(params.lat));
   const lng = parseNumber(getParam(params.lng));
+  const variant = parseNumber(getParam(params.variant));
 
   return {
     area,
     intent,
     lat,
     lng,
+    variant,
     currentTime: getParam(params.currentTime) ?? new Date().toISOString(),
   };
 }

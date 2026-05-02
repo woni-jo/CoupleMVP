@@ -12,6 +12,7 @@ export async function GET(request: Request) {
     lat: parseNumber(searchParams.get("lat") ?? undefined),
     lng: parseNumber(searchParams.get("lng") ?? undefined),
     currentTime: searchParams.get("currentTime") ?? new Date().toISOString(),
+    variant: parseNumber(searchParams.get("variant") ?? undefined),
   });
 }
 
@@ -50,6 +51,7 @@ function parseBody(body: unknown): RecommendRequest {
     lat: readNumber(body.lat),
     lng: readNumber(body.lng),
     currentTime: readString(body.currentTime),
+    variant: readNumber(body.variant),
   };
 }
 
@@ -109,7 +111,5 @@ function parseIntent(value?: string): IntentKey | undefined {
 }
 
 function getErrorMessage(error: unknown) {
-  return error instanceof Error
-    ? error.message
-    : "추천을 가져오지 못했습니다.";
+  return error instanceof Error ? error.message : "추천을 가져오지 못했습니다.";
 }

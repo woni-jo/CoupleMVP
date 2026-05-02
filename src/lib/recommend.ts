@@ -56,6 +56,8 @@ export function buildRecommendation(
     meta: {
       area,
       currentTime,
+      usesCurrentLocation:
+        typeof request.lat === "number" && typeof request.lng === "number",
     },
     options: actions.map((action) =>
       buildRecommendationOption({
@@ -65,6 +67,7 @@ export function buildRecommendation(
         lng: request.lng,
         places,
         timeReason: timeSlot.reason,
+        variant: request.variant ?? 0,
       }),
     ),
   };
@@ -93,6 +96,7 @@ function buildRecommendationOption({
   lng,
   places,
   timeReason,
+  variant,
 }: {
   action: ActionKey;
   area: AreaKey;
@@ -100,13 +104,14 @@ function buildRecommendationOption({
   lng?: number;
   places: Place[];
   timeReason: string;
+  variant: number;
 }): RecommendationOption {
   return {
     key: action,
     label: ACTION_LABELS[action],
     description: ACTION_DESCRIPTIONS[action],
     reason: timeReason,
-    places: getPlacesForAction({ action, area, lat, lng, places }),
+    places: getPlacesForAction({ action, area, lat, lng, places, variant }),
   };
 }
 
@@ -116,19 +121,32 @@ function getPlacesForAction({
   lat,
   lng,
   places,
+  variant,
 }: {
   action: ActionKey;
   area: AreaKey;
   lat?: number;
   lng?: number;
   places: Place[];
+  variant: number;
 }): RecommendedPlace[] {
   const categories = ACTION_CATEGORIES[action];
   const matchingPlaces = places.filter(
     (place) =>
       categories.includes(place.category) || place.timeSlots.includes(action),
   );
-  const candidates = matchingPlaces.length > 0 ? matchingPlaces : places;
+  const areaMatchingPlaces = matchingPlaces.filter(
+    (place) => place.area === area,
+  );
+  const areaPlaces = places.filter((place) => place.area === area);
+  const candidates =
+    areaMatchingPlaces.length > 0
+      ? areaMatchingPlaces
+      : matchingPlaces.length > 0
+        ? matchingPlaces
+        : areaPlaces.length > 0
+          ? areaPlaces
+          : places;
 
   const rankedCandidates = candidates
     .map((place) => decoratePlace(place, action, lat, lng))
@@ -136,7 +154,7 @@ function getPlacesForAction({
 
   const topPool = rankedCandidates.slice(0, Math.min(6, rankedCandidates.length));
 
-  return shufflePlaces(topPool).slice(0, 3);
+  return pickFromTopPool(topPool, action, variant);
 }
 
 function decoratePlace(
@@ -184,13 +202,17 @@ function getPlaceReason(action: ActionKey, distanceMeters?: number) {
   return `${distancePrefix}부담 없이 걷고 구경하기 좋아요.`;
 }
 
-function getActionOptions(baseActions: ActionKey[], intent?: IntentKey) {
+function getActionOptions(
+  baseActions: ActionKey[],
+  intent?: IntentKey,
+) {
   const preferred = intent ? INTENT_TO_ACTION[intent] : undefined;
   const merged = preferred
     ? [preferred, ...baseActions, ...DEFAULT_ACTIONS]
     : [...baseActions, ...DEFAULT_ACTIONS];
+  const uniqueActions = Array.from(new Set(merged));
 
-  return Array.from(new Set(merged)).slice(0, 3);
+  return uniqueActions.slice(0, 3);
 }
 
 function getCurrentTimeSlot(date: Date) {
@@ -232,11 +254,41 @@ function getValidCurrentTime(currentTime?: string) {
   return currentTime ?? date.toISOString();
 }
 
-function shufflePlaces(places: RecommendedPlace[]) {
+function pickFromTopPool(
+  places: RecommendedPlace[],
+  action: ActionKey,
+  variant: number,
+) {
+  if (places.length <= 3) {
+    return places;
+  }
+
+  return shufflePlaces(places, action, variant).slice(0, 3);
+}
+
+function shufflePlaces(
+  places: RecommendedPlace[],
+  action: ActionKey,
+  variant: number,
+) {
   return places
-    .map((place) => ({ place, rank: Math.random() }))
+    .map((place, index) => ({
+      place,
+      rank: getStableRank(`${action}-${variant}-${place.id}-${index}`),
+    }))
     .sort((a, b) => a.rank - b.rank)
     .map(({ place }) => place);
+}
+
+function getStableRank(seed: string) {
+  let hash = 2166136261;
+
+  for (let index = 0; index < seed.length; index += 1) {
+    hash ^= seed.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return hash >>> 0;
 }
 
 function toPlace(row: PlacesRow): Place | null {

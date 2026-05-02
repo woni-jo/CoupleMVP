@@ -9,12 +9,17 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("Home", () => {
-  it("renders the mobile MVP home form", () => {
-    render(<Home />);
+  it("renders the start screen first", async () => {
+    render(await Home({ searchParams: Promise.resolve({}) }));
 
     expect(screen.getByText("CoupleDating")).toBeInTheDocument();
-    expect(screen.getByText("먼저 골라볼까요?")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "현위치" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "추천받기 ♥" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "시작하기" })).toBeInTheDocument();
+  });
+
+  it("can start from the selection screen", async () => {
+    render(await Home({ searchParams: Promise.resolve({ start: "1" }) }));
+
+    expect(screen.getByText("상황 선택")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "추천받기" })).toBeInTheDocument();
   });
 });

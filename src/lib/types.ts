@@ -51,6 +51,7 @@ export type RecommendationResponse = {
   meta: {
     area: AreaKey;
     currentTime: string;
+    usesCurrentLocation: boolean;
   };
   options: RecommendationOption[];
 };
@@ -61,4 +62,5 @@ export type RecommendRequest = {
   area?: AreaKey;
   intent?: IntentKey;
   currentTime?: string;
+  variant?: number;
 };

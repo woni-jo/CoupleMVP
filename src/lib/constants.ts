@@ -15,7 +15,6 @@ export const INTENTS: ReadonlyArray<{
   { key: "lunch", label: "밥 먹고 싶어요", helper: "맛있는 식사" },
   { key: "cafe", label: "카페 가고 싶어요", helper: "쉬면서 대화" },
   { key: "walk", label: "산책/구경하고 싶어요", helper: "가볍게 이동" },
-  { key: "dinner", label: "저녁 먹고 싶어요", helper: "분위기 있는 식사" },
 ];
 
 export const ACTION_LABELS: Record<ActionKey, string> = {
@@ -31,7 +30,7 @@ export const ACTION_DESCRIPTIONS: Record<ActionKey, string> = {
   lunch: "지금 시간에 가기 좋은 식사 장소",
   dinner: "데이트를 마무리하기 좋은 저녁 장소",
   cafe: "쉬면서 대화하기 좋은 카페",
-  dessert: "가볍게 단맛을 채우기 좋은 곳",
+  dessert: "가볍게 당을 채우기 좋은 곳",
   walk: "걷고 구경하기 좋은 코스",
   culture: "짧게 둘러보기 좋은 문화 공간",
 };
@@ -67,13 +66,13 @@ export const TIME_SLOT_ACTIONS: ReadonlyArray<{
     startMinute: 17 * 60,
     endMinute: 20 * 60,
     actions: ["dinner", "cafe", "walk"],
-    reason: "저녁 시간대라 식사 후 가볍게 이어갈 선택지를 함께 보여줍니다.",
+    reason: "저녁 시간대라 식사 후 가볍게 이어갈 선택지를 보여줍니다.",
   },
   {
     startMinute: 20 * 60,
     endMinute: 22 * 60 + 30,
     actions: ["dessert", "walk", "culture"],
-    reason: "늦은 시간에는 부담이 적은 디저트와 산책 선택지를 우선합니다.",
+    reason: "밤 시간에는 부담이 적은 디저트, 산책 선택지를 우선합니다.",
   },
 ];
 
